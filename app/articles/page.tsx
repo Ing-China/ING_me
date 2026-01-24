@@ -30,7 +30,7 @@ const Articles = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem-4rem)]">
+    <div className="flex items-center min-h-[calc(100vh-4rem)]">
       <div className="max-w-5xl mx-auto p-4 sm:p-8 lg:p-12 w-full">
         <div className="space-y-6 mb-8">
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight">

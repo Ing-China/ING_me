@@ -59,7 +59,7 @@ const Contact = () => {
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -107,7 +107,7 @@ const Contact = () => {
     }
   };
   return (
-    <div className="min-h-[calc(100vh-4rem-4rem)] flex items-center">
+    <div className="flex items-center min-h-[calc(100vh-4rem)]">
       <div className="max-w-5xl mx-auto p-4 sm:p-8 lg:p-12 w-full">
         <div className="space-y-6 mb-6">
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
@@ -190,7 +190,7 @@ const Contact = () => {
               onClick={() =>
                 window.open(
                   "https://www.linkedin.com/in/ing-china-9a3433319/",
-                  "_blank"
+                  "_blank",
                 )
               }
               className="w-full flex items-center gap-4 p-4 rounded-lg bg-foreground/5 hover:bg-foreground/10 transition-colors cursor-pointer text-left"
@@ -223,7 +223,7 @@ const Contact = () => {
               onClick={() =>
                 window.open(
                   "https://www.instagram.com/china_asdfghjkl/",
-                  "_blank"
+                  "_blank",
                 )
               }
               className="w-full flex items-center gap-4 p-4 rounded-lg bg-foreground/5 hover:bg-foreground/10 transition-colors cursor-pointer text-left"

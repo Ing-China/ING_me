@@ -4,7 +4,7 @@ import React from "react";
 
 const About = () => {
   return (
-    <div className="min-h-[calc(100vh-4rem-4rem)] flex items-center">
+    <div className="flex items-center min-h-[calc(100vh-4rem)]">
       <div className="max-w-5xl mx-auto p-4 sm:p-8 lg:p-12 w-full">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 lg:gap-16">
           <div className="space-y-6 sm:space-y-8 text-left lg:flex-1">
@@ -16,10 +16,10 @@ const About = () => {
               </h1>
             </div>
             <p className="text-foreground max-w-lg">
-              a <strong>full-stack developer</strong> with a passion for transforming ideas into
-              high-performance applications. Skilled in writing clean code,
-              crafting elegant UI/UX designs, and delivering seamless user
-              experiences across mobile and web platforms.
+              a <strong>full-stack developer</strong> with a passion for
+              transforming ideas into high-performance applications. Skilled in
+              writing clean code, crafting elegant UI/UX designs, and delivering
+              seamless user experiences across mobile and web platforms.
             </p>
 
             <Link href="/articles">
