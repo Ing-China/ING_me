@@ -1,20 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
 
-interface ContactFormData {
-  name: string;
-  email: string;
-  message: string;
-}
-
 export async function POST(request: NextRequest) {
   try {
-    const body: ContactFormData = await request.json();
-    const { name, email, message } = body;
+    const body = await request.json();
+    const { name, email, message, website, _gotcha, timestamp } = body;
+
+    // Honeypot: bots fill hidden fields, real users don't
+    if (website || _gotcha) {
+      // Return success to not alert the bot
+      return NextResponse.json(
+        { message: "Email sent successfully", id: "ok" },
+        { status: 200 }
+      );
+    }
+
+    // Time-based: reject if submitted faster than 3 seconds
+    if (timestamp && Date.now() - Number(timestamp) < 3000) {
+      return NextResponse.json(
+        { message: "Email sent successfully", id: "ok" },
+        { status: 200 }
+      );
+    }
 
     if (!name || !email || !message) {
       return NextResponse.json(
         { error: "All fields are required" },
         { status: 400 }
+      );
+    }
+
+    // Basic content spam check: reject gibberish names or messages
+    const gibberishPattern = /^[A-Za-z0-9]{15,}$/;
+    if (gibberishPattern.test(name.trim())) {
+      return NextResponse.json(
+        { message: "Email sent successfully", id: "ok" },
+        { status: 200 }
       );
     }
 

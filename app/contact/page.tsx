@@ -15,6 +15,9 @@ interface FormData {
   name: string;
   email: string;
   message: string;
+  website: string;
+  _gotcha: string;
+  timestamp: number;
 }
 
 interface FormErrors {
@@ -28,6 +31,9 @@ const Contact = () => {
     name: "",
     email: "",
     message: "",
+    website: "",
+    _gotcha: "",
+    timestamp: Date.now(),
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -96,7 +102,7 @@ const Contact = () => {
 
       if (response.ok) {
         setSubmitStatus("success");
-        setFormData({ name: "", email: "", message: "" });
+        setFormData({ name: "", email: "", message: "", website: "", _gotcha: "", timestamp: Date.now() });
       } else {
         setSubmitStatus("error");
       }
@@ -277,6 +283,30 @@ const Contact = () => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Honeypot fields - hidden from real users, bots will fill these */}
+            <div className="absolute opacity-0 top-0 left-0 h-0 w-0 -z-10" aria-hidden="true">
+              <label htmlFor="website">Website</label>
+              <input
+                type="text"
+                id="website"
+                name="website"
+                value={formData.website}
+                onChange={handleInputChange}
+                tabIndex={-1}
+                autoComplete="off"
+              />
+              <label htmlFor="_gotcha">Leave empty</label>
+              <input
+                type="text"
+                id="_gotcha"
+                name="_gotcha"
+                value={formData._gotcha}
+                onChange={handleInputChange}
+                tabIndex={-1}
+                autoComplete="off"
+              />
+            </div>
+
             <div>
               <label htmlFor="name" className="block text-sm font-medium mb-2">
                 Name
