@@ -3,22 +3,34 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, message, website, _gotcha, timestamp } = body;
+    const { name, email, message, turnstileToken } = body;
 
-    // Honeypot: bots fill hidden fields, real users don't
-    if (website || _gotcha) {
-      // Return success to not alert the bot
+    // Verify Cloudflare Turnstile token
+    const TURNSTILE_SECRET_KEY = process.env.TURNSTILE_SECRET_KEY;
+    if (!turnstileToken || !TURNSTILE_SECRET_KEY) {
       return NextResponse.json(
-        { message: "Email sent successfully", id: "ok" },
-        { status: 200 }
+        { error: "Verification failed" },
+        { status: 400 }
       );
     }
 
-    // Time-based: reject if submitted faster than 3 seconds
-    if (timestamp && Date.now() - Number(timestamp) < 3000) {
+    const turnstileResponse = await fetch(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          secret: TURNSTILE_SECRET_KEY,
+          response: turnstileToken,
+        }),
+      }
+    );
+
+    const turnstileResult = await turnstileResponse.json();
+    if (!turnstileResult.success) {
       return NextResponse.json(
-        { message: "Email sent successfully", id: "ok" },
-        { status: 200 }
+        { error: "Verification failed" },
+        { status: 400 }
       );
     }
 
@@ -26,15 +38,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "All fields are required" },
         { status: 400 }
-      );
-    }
-
-    // Basic content spam check: reject gibberish names or messages
-    const gibberishPattern = /^[A-Za-z0-9]{15,}$/;
-    if (gibberishPattern.test(name.trim())) {
-      return NextResponse.json(
-        { message: "Email sent successfully", id: "ok" },
-        { status: 200 }
       );
     }
 

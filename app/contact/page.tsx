@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   FaGithub,
   FaLinkedin,
@@ -11,13 +11,23 @@ import {
   FaYoutube,
 } from "react-icons/fa";
 
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (element: HTMLElement, options: Record<string, unknown>) => void;
+      reset: (element: HTMLElement) => void;
+    };
+  }
+}
+
+// Cloudflare Turnstile test key always passes in development
+const TURNSTILE_SITE_KEY =
+  process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA";
+
 interface FormData {
   name: string;
   email: string;
   message: string;
-  website: string;
-  _gotcha: string;
-  timestamp: number;
 }
 
 interface FormErrors {
@@ -31,15 +41,35 @@ const Contact = () => {
     name: "",
     email: "",
     message: "",
-    website: "",
-    _gotcha: "",
-    timestamp: Date.now(),
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<
     "idle" | "success" | "error"
   >("idle");
+  const [turnstileToken, setTurnstileToken] = useState<string>("");
+  const turnstileRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+    script.async = true;
+    script.onload = () => {
+      if (window.turnstile && turnstileRef.current) {
+        window.turnstile.render(turnstileRef.current, {
+          sitekey: TURNSTILE_SITE_KEY,
+          callback: (token: string) => setTurnstileToken(token),
+          "expired-callback": () => setTurnstileToken(""),
+          theme: "auto",
+        });
+      }
+    };
+    document.head.appendChild(script);
+
+    return () => {
+      document.head.removeChild(script);
+    };
+  }, []);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -88,6 +118,11 @@ const Contact = () => {
       return;
     }
 
+    if (!turnstileToken) {
+      setSubmitStatus("error");
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmitStatus("idle");
 
@@ -97,12 +132,16 @@ const Contact = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, turnstileToken }),
       });
 
       if (response.ok) {
         setSubmitStatus("success");
-        setFormData({ name: "", email: "", message: "", website: "", _gotcha: "", timestamp: Date.now() });
+        setFormData({ name: "", email: "", message: "" });
+        setTurnstileToken("");
+        if (turnstileRef.current && window.turnstile) {
+          window.turnstile.reset(turnstileRef.current);
+        }
       } else {
         setSubmitStatus("error");
       }
@@ -283,30 +322,6 @@ const Contact = () => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Honeypot fields - hidden from real users, bots will fill these */}
-            <div className="absolute opacity-0 top-0 left-0 h-0 w-0 -z-10" aria-hidden="true">
-              <label htmlFor="website">Website</label>
-              <input
-                type="text"
-                id="website"
-                name="website"
-                value={formData.website}
-                onChange={handleInputChange}
-                tabIndex={-1}
-                autoComplete="off"
-              />
-              <label htmlFor="_gotcha">Leave empty</label>
-              <input
-                type="text"
-                id="_gotcha"
-                name="_gotcha"
-                value={formData._gotcha}
-                onChange={handleInputChange}
-                tabIndex={-1}
-                autoComplete="off"
-              />
-            </div>
-
             <div>
               <label htmlFor="name" className="block text-sm font-medium mb-2">
                 Name
@@ -379,11 +394,13 @@ const Contact = () => {
               )}
             </div>
 
+            <div ref={turnstileRef} className="mb-2" />
+
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !turnstileToken}
               className={`w-full py-2 px-4 rounded-md font-medium transition-colors ${
-                isSubmitting
+                isSubmitting || !turnstileToken
                   ? "bg-foreground/50 text-background/50 cursor-not-allowed"
                   : "bg-foreground text-background hover:bg-foreground/90"
               }`}
