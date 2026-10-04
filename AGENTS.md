@@ -41,6 +41,7 @@ A single-page personal portfolio (name, description, and an animated logo next t
 - `src/pages/index.astro`: the only page. Holds the content, the page-scoped styles, and the small script that rotates the logos.
 - `src/layouts/Layout.astro`: the HTML shell and all SEO tags (canonical, Open Graph, Twitter card, theme-color, `Person` JSON-LD). Takes `title`, `description`, and optional `image` props. Absolute URLs are built from `site` in `astro.config.mjs` (`https://ingchina.dev`).
 - `src/pages/robots.txt.ts`, `src/pages/sitemap.xml.ts`: static endpoints generated at build time from `site`.
+- `worker/index.ts` + `wrangler.jsonc`: deployed to the `ingchina-portfolio` Cloudflare Worker (`npm run deploy`). The Worker runs before static assets and 301-redirects `www.ingchina.dev` to `ingchina.dev`; everything else is served from `dist/`.
 - `src/styles/global.css`: `@font-face`, light/dark color variables on `:root`, reset, and `body` styles. Imported by the layout.
 - `src/assets/logos/*.svg`: brand logos (from Simple Icons) imported as Astro SVG components. Use `fill="currentColor"` for logos that should follow the theme.
 - `public/og.png`, `favicon.svg`, `favicon.ico`, `apple-touch-icon.png`: pre-rendered images with the name and description baked in. Regenerate them if the name or description changes.
