@@ -6,6 +6,26 @@
 	src: url('/fonts/funnel-display-latin.woff2') format('woff2');
 }
 
+@font-face {
+	font-family: 'Funnel Display Fallback';
+	font-weight: 400;
+	src: local('Arial'), local('ArialMT');
+	size-adjust: 105.46%;
+	ascent-override: 94.82%;
+	descent-override: 23.7%;
+	line-gap-override: 0%;
+}
+
+@font-face {
+	font-family: 'Funnel Display Fallback';
+	font-weight: 600;
+	src: local('Arial Bold'), local('Arial-BoldMT');
+	size-adjust: 99.84%;
+	ascent-override: 100.16%;
+	descent-override: 25.04%;
+	line-gap-override: 0%;
+}
+
 :root {
 	--bg: #fafafa;
 	--fg: #111;
@@ -32,6 +52,6 @@ body {
 	min-height: 100svh;
 	background: var(--bg);
 	color: var(--fg);
-	font-family: 'Funnel Display', system-ui, sans-serif;
+	font-family: 'Funnel Display', 'Funnel Display Fallback', system-ui, sans-serif;
 	-webkit-font-smoothing: antialiased;
 }
