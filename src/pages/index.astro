@@ -1,17 +1,108 @@
 ---
+import Layout from '../layouts/Layout.astro';
+import ChatGPT from '../assets/logos/chatgpt.svg';
+import Claude from '../assets/logos/claude.svg';
 
+const name = 'ING China';
+const description =
+	'I turn ideas into fast, simple apps for web and mobile — clean code, elegant interfaces, and experiences that just feel right.';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout title={name} description={description}>
+	<main>
+		<h1>
+			{name}
+			<span class="logos" aria-hidden="true">
+				<Claude class="logo active" />
+				<ChatGPT class="logo" />
+			</span>
+		</h1>
+		<p>{description}</p>
+	</main>
+</Layout>
+
+<script>
+	const logos = document.querySelectorAll<SVGElement>('.logos .logo');
+	const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+	if (logos.length > 1 && !reduceMotion) {
+		let current = 0;
+
+		setInterval(() => {
+			logos[current].classList.remove('active');
+			current = (current + 1) % logos.length;
+			logos[current].classList.add('active');
+		}, 2200);
+	}
+</script>
+
+<style>
+	main {
+		display: grid;
+		place-content: center;
+		min-height: 100svh;
+		padding: 1.5rem;
+	}
+
+	h1 {
+		position: relative;
+		justify-self: start;
+		font-size: clamp(1.75rem, 5vw, 2.75rem);
+		font-weight: 600;
+		letter-spacing: -0.04em;
+		line-height: 1;
+	}
+
+	p {
+		max-width: 36rem;
+		margin-top: 1.25rem;
+		font-size: clamp(1rem, 2.5vw, 1.125rem);
+		line-height: 1.6;
+		color: var(--muted);
+		text-wrap: balance;
+	}
+
+	.logos {
+		position: absolute;
+		top: -0.6rem;
+		left: 100%;
+		width: 2.25rem;
+		height: 2.25rem;
+		margin-left: 0.25rem;
+		animation: float 3s ease-in-out infinite;
+	}
+
+	.logo {
+		position: absolute;
+		inset: 0;
+		width: 1.125rem;
+		height: 1.125rem;
+		margin: auto;
+		opacity: 0;
+		transform: scale(0.6) rotate(-20deg);
+		transition:
+			opacity 0.4s ease,
+			transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+	}
+
+	.logo.active {
+		opacity: 1;
+		transform: none;
+	}
+
+	@keyframes float {
+		50% {
+			transform: translateY(-3px);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.logos {
+			animation: none;
+		}
+
+		.logo {
+			transition: none;
+		}
+	}
+</style>
