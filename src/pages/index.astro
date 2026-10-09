@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import ChatGPT from '../assets/logos/chatgpt.svg';
 import Claude from '../assets/logos/claude.svg';
+import { Mascot } from 'page-mascot';
 
 const name = 'ING China';
 const description =
@@ -10,29 +11,59 @@ const description =
 
 <Layout title={name} description={description}>
 	<main>
-		<h1>
-			{name}
-			<span class="logos" aria-hidden="true">
-				<Claude class="logo active" />
-				<ChatGPT class="logo" />
-			</span>
-		</h1>
+		<div class="title">
+			<h1>{name}</h1>
+			<div class="mascot">
+				<Mascot
+					client:load
+					directions="/mascots/wizard-directions.webp"
+					reactions="/mascots/wizard-reactions.webp"
+					size={96}
+					label="A wizard that watches your cursor"
+				/>
+				<span class="boop-logos" aria-hidden="true">
+					<Claude class="boop-logo" />
+					<ChatGPT class="boop-logo" />
+				</span>
+			</div>
+		</div>
 		<p>{description}</p>
 	</main>
 </Layout>
 
 <script>
-	const logos = document.querySelectorAll<SVGElement>('.logos .logo');
-	const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+	// The wizard's "heart" reaction has its heart erased from the sprite sheet; this pops a
+	// Claude or ChatGPT logo into that spot instead. The counting and timings mirror the
+	// boop logic in page-mascot 0.1.0 (heart = first click of a burst, dizzy on the 4th).
+	const mascot = document.querySelector<HTMLElement>('.mascot');
+	const boopLogos = mascot?.querySelectorAll<SVGElement>('.boop-logo') ?? [];
 
-	if (logos.length > 1 && !reduceMotion) {
-		let current = 0;
+	if (mascot && boopLogos.length > 0) {
+		let boops = 0;
+		let lastBoop = 0;
+		let nextLogo = 0;
+		let timers: number[] = [];
 
-		setInterval(() => {
-			logos[current].classList.remove('active');
-			current = (current + 1) % logos.length;
-			logos[current].classList.add('active');
-		}, 2200);
+		mascot.addEventListener('click', () => {
+			timers.forEach(clearTimeout);
+			timers = [];
+			boopLogos.forEach((logo) => logo.classList.remove('show'));
+
+			const now = Date.now();
+			boops = now - lastBoop < 1600 ? boops + 1 : 1;
+			lastBoop = now;
+
+			if (boops >= 4) {
+				boops = 0;
+				return;
+			}
+			if ((boops - 1) % 3 !== 0) return;
+
+			const logo = boopLogos[nextLogo];
+			nextLogo = (nextLogo + 1) % boopLogos.length;
+			timers.push(window.setTimeout(() => logo.classList.add('show'), 120));
+			timers.push(window.setTimeout(() => logo.classList.remove('show'), 560));
+		});
 	}
 </script>
 
@@ -44,9 +75,49 @@ const description =
 		padding: 1.5rem;
 	}
 
-	h1 {
+	.title {
+		display: flex;
+		align-items: flex-end;
+		gap: 0.5rem;
+	}
+
+	/* The sprite leaves ~20% empty below the shoulders; pull it down so they sit on the baseline. */
+	.mascot {
 		position: relative;
-		justify-self: start;
+		flex: none;
+		min-height: 96px;
+		margin-bottom: -1rem;
+	}
+
+	/* Near where the heart was drawn in the reactions sheet, nudged right to clear the hat. */
+	.boop-logos {
+		position: absolute;
+		top: 26%;
+		left: 80%;
+		width: 15%;
+		aspect-ratio: 1;
+		translate: -50% -50%;
+		pointer-events: none;
+	}
+
+	.boop-logo {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		opacity: 0;
+		transform: scale(0.4);
+		transition:
+			opacity 0.12s ease,
+			transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+	}
+
+	.boop-logo.show {
+		opacity: 1;
+		transform: none;
+	}
+
+	h1 {
 		font-size: clamp(1.75rem, 5vw, 2.75rem);
 		font-weight: 600;
 		letter-spacing: -0.04em;
@@ -62,46 +133,8 @@ const description =
 		text-wrap: balance;
 	}
 
-	.logos {
-		position: absolute;
-		top: -0.6rem;
-		left: 100%;
-		width: 2.25rem;
-		height: 2.25rem;
-		margin-left: 0.25rem;
-		animation: float 3s ease-in-out infinite;
-	}
-
-	.logo {
-		position: absolute;
-		inset: 0;
-		width: 1.125rem;
-		height: 1.125rem;
-		margin: auto;
-		opacity: 0;
-		transform: scale(0.6) rotate(-20deg);
-		transition:
-			opacity 0.4s ease,
-			transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-	}
-
-	.logo.active {
-		opacity: 1;
-		transform: none;
-	}
-
-	@keyframes float {
-		50% {
-			transform: translateY(-3px);
-		}
-	}
-
 	@media (prefers-reduced-motion: reduce) {
-		.logos {
-			animation: none;
-		}
-
-		.logo {
+		.boop-logo {
 			transition: none;
 		}
 	}
